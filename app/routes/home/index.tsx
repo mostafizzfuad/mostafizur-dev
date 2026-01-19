@@ -1,4 +1,4 @@
-import type { Route } from "./+types/home";
+import type { Route } from "../+types/home";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -10,6 +10,12 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
-export default function Home() {
-	return <div>My App</div>;
-}
+const HomePage = () => {
+	return (
+		<section>
+			<h1>Welcome</h1>
+		</section>
+	);
+};
+
+export default HomePage;
