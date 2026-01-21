@@ -12,7 +12,7 @@ export async function loader({
 }
 
 const ProjectsPage = ({ loaderData }: Route.ComponentProps) => {
-	const { projects } = loaderData as { projects: Project[] };
+	const { projects } = loaderData;
 	// console.log(projects);
 
 	return (
