@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Project } from "~/types";
 import type { Route } from "./+types";
+import { AnimatePresence, motion } from "framer-motion";
 import ProjectCard from "~/components/project-card";
 import Pagination from "~/components/Pagination";
 
@@ -66,11 +67,30 @@ const ProjectsPage = ({ loaderData }: Route.ComponentProps) => {
 				))}
 			</div>
 
-			<div className="grid gap-6 sm:grid-cols-2">
+			{/* <div className="grid gap-6 sm:grid-cols-2">
 				{currentProjects.map((project) => (
 					<ProjectCard key={project.id} project={project} />
 				))}
-			</div>
+			</div> */}
+
+			{/* অ্যানিমেশন র‍্যাপার */}
+			<AnimatePresence mode="wait">
+				<motion.div layout className="grid gap-6 sm:grid-cols-2">
+					{currentProjects.map((project) => (
+						// প্রতিটি আইটেমের জন্য motion div
+						<motion.div
+							key={project.id}
+							layout
+							initial={{ opacity: 0, scale: 0.9 }} // অপশনাল: শুরুতে একটু ছোট ও ঝাপসা থাকবে
+							animate={{ opacity: 1, scale: 1 }} // অপশনাল: স্বাভাবিক হবে
+							exit={{ opacity: 0, scale: 0.9 }} // অপশনাল: যাওয়ার সময় ছোট হয়ে মিলিয়ে যাবে
+							transition={{ duration: 0.3 }}
+						>
+							<ProjectCard project={project} />
+						</motion.div>
+					))}
+				</motion.div>
+			</AnimatePresence>
 
 			<Pagination
 				totalPages={totalPages}
