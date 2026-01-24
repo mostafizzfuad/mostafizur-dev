@@ -16,6 +16,7 @@ export default [
 		route("projects", "./routes/projects/index.tsx"),
 		route("blog", "./routes/blog/index.tsx"),
 		route("projects/:id", "./routes/projects/details.tsx"),
+		route("blog/:slug", "./routes/blog/details.tsx"),
 
 		// Wildcard route (সবার শেষে থাকবে)
 		route("*", "./routes/errors/not-found.tsx"),
