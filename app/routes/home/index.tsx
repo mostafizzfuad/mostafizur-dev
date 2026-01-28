@@ -1,5 +1,5 @@
 import type { Route } from "./+types/index";
-import type { Project, PostMeta } from "~/types";
+import type { Project, PostMeta, StrapiResponse, StrapiProject } from "~/types";
 import FeaturedProjects from "~/components/featured-projects";
 import AboutPreview from "~/components/about-preview";
 import LatestPosts from "~/components/latest-posts";
@@ -9,7 +9,7 @@ export function meta({}: Route.MetaArgs) {
 		{ title: "Mostafizur's Portfolio" },
 		{
 			name: "description",
-			content: "Frontend, Backend and Full Stack Projects",
+			content: "Frontend and Full Stack Projects",
 		},
 	];
 }
@@ -18,22 +18,40 @@ export function meta({}: Route.MetaArgs) {
 export async function loader({
 	request,
 }: Route.LoaderArgs): Promise<{ projects: Project[]; posts: PostMeta[] }> {
-	// প্যারালাল ডেটা ফেচিং
-	const [projectRes, postRes] = await Promise.all([
-		fetch(`${import.meta.env.VITE_API_URL}/projects`),
-		fetch(new URL("/posts-meta.json", request.url)),
+	// ১. প্যারালাল ফেচিং (প্রজেক্ট Strapi থেকে, পোস্ট এখনো JSON থেকে)
+	const [projectsRes, postsRes] = await Promise.all([
+		fetch(
+			`${import.meta.env.VITE_API_URL}/projects?filters[featured][$eq]=true&populate=*`,
+		),
+		fetch(new URL("/posts-meta.json", request.url)), // পোস্টগুলো পরে Strapi তে নেব
 	]);
 
-	if (!projectRes.ok || !postRes.ok) {
-		throw new Error("Failed to fetch projects or posts");
+	if (!projectsRes.ok || !postsRes.ok) {
+		throw new Error("Failed to fetch data");
 	}
 
-	const [projects, posts]: [Project[], PostMeta[]] = await Promise.all([
-		projectRes.json(),
-		postRes.json(),
-	]);
+	// ২. রেসপন্স পার্স করা
+	const projectsJson: StrapiResponse<StrapiProject> =
+		await projectsRes.json();
+	const postsJson = await postsRes.json();
 
-	return { projects, posts };
+	// ৩. Strapi ডেটা ম্যাপ করা
+	const projects = projectsJson.data.map((item: any) => ({
+		id: item.id,
+		documentId: item.documentId,
+		title: item.title,
+		description: item.description,
+		image: item.image?.url
+			? `${import.meta.env.VITE_STRAPI_URL}${item.image.url}`
+			: "/images/no-image.png",
+		url: item.url,
+		date: item.date,
+		category: item.category,
+		featured: item.featured,
+	}));
+
+	// পোস্টগুলো এখনো raw JSON হিসেবেই আছে
+	return { projects, posts: postsJson };
 }
 
 // কম্পোনেন্টে ডেটা পাস করা
@@ -42,7 +60,7 @@ const HomePage = ({ loaderData }: Route.ComponentProps) => {
 
 	return (
 		<>
-			<FeaturedProjects projects={projects} count={2} />
+			<FeaturedProjects projects={projects} />
 			<AboutPreview />
 			<LatestPosts posts={posts} limit={3} />
 		</>

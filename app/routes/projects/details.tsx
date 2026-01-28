@@ -1,31 +1,49 @@
 import type { Route } from "./+types/details";
-import type { Project } from "~/types";
+import type { Project, StrapiResponse, StrapiProject } from "~/types";
 import { FaArrowLeft } from "react-icons/fa";
 import { Link } from "react-router";
 
-export async function clientLoader({
-	params,
-}: Route.ClientLoaderArgs): Promise<Project> {
-	// const res = await fetch(`http://localhost:8000/projects/${params.id}`);
+export async function loader({ params }: Route.LoaderArgs) {
+	const { id } = params; // URL থেকে documentId নেওয়া হচ্ছে
+
+	// Strapi-তে নির্দিষ্ট documentId দিয়ে ফিল্টার করা হচ্ছে
 	const res = await fetch(
-		`${import.meta.env.VITE_API_URL}/projects/${params.id}`,
+		`${import.meta.env.VITE_API_URL}/projects?filters[documentId][$eq]=${id}&populate=*`,
 	);
 
 	if (!res.ok) {
-		throw new Response("Project not found", { status: 404 });
+		throw new Error("Failed to fetch project");
 	}
 
-	const project: Project = await res.json();
-	return project;
-}
+	const json: StrapiResponse<StrapiProject> = await res.json();
 
-export function HydrateFallback() {
-	return <div>Loading...</div>;
+	// যদি কোনো ডেটা না পাওয়া যায়, 404 রিটার্ন করো
+	if (!json.data.length) {
+		throw new Response("Not Found", { status: 404 });
+	}
+
+	const item = json.data[0];
+
+	// Strapi ফরম্যাট থেকে আমাদের Project ফরম্যাটে কনভার্ট করা
+	const project: Project = {
+		id: item.id,
+		documentId: item.documentId,
+		title: item.title,
+		description: item.description,
+		image: item.image?.url
+			? `${import.meta.env.VITE_STRAPI_URL}${item.image.url}`
+			: "/images/no-image.png",
+		url: item.url,
+		date: item.date,
+		category: item.category,
+		featured: item.featured,
+	};
+
+	return { project };
 }
 
 const ProjectDetailsPage = ({ loaderData }: Route.ComponentProps) => {
-	const project = loaderData;
-	// console.log(project);
+	const { project } = loaderData;
 
 	return (
 		<>
