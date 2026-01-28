@@ -23,7 +23,7 @@ export async function loader({
 		description: item.description,
 		// ইমেজ URL ঠিক করা
 		image: item.image?.url
-			? `${import.meta.env.VITE_STRAPI_URL}${item.image.url}`
+			? `${item.image.url}`
 			: "/images/no-image.png", // ব্যাকআপ ইমেজ
 		url: item.url,
 		date: item.date,

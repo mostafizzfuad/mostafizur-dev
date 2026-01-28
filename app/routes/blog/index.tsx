@@ -26,10 +26,7 @@ export async function loader({
 		excerpt: item.excerpt,
 		slug: item.slug,
 		date: item.date,
-		// body: item.body, (নোট: PostMeta তে body নেই, তবে এখানে ম্যাপ করা হয়েছে ফিউচার ইউজের জন্য)
-		image: item.image?.url
-			? `${import.meta.env.VITE_STRAPI_URL}${item.image.url}`
-			: "/images/no-image.png",
+		image: item.image?.url ? `${item.image.url}` : "/images/no-image.png",
 	}));
 
 	return { posts };
